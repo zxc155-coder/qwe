@@ -1,0 +1,27 @@
+{
+  "name": "vibe-cloud",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VIBE CLOUD — Telegram vape-shop bot (Telegraf) + premium React/Vite Web App",
+  "type": "module",
+  "scripts": {
+    "seed": "node db/seedProducts.js",
+    "bot": "node bot/index.js",
+    "api": "node api/server.js",
+    "web": "npm --prefix web run dev",
+    "web:build": "npm --prefix web run build",
+    "web:preview": "npm --prefix web run preview",
+    "install:all": "npm install && npm --prefix web install",
+    "start": "node bot/index.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "telegraf": "^4.16.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
