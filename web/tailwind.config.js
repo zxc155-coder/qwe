@@ -4,44 +4,44 @@ export default {
   theme: {
     extend: {
       colors: {
-        vibe: {
-          bg0:    '#0B0A1A',
-          bg1:    '#1A0B2E',
-          accent: '#C084FC',
-          accent2:'#A855F7',
-          glass:  'rgba(255,255,255,0.06)',
+        // forest-charcoal palette: deep evergreen surfaces, never pitch-black
+        ink: {
+          900: '#0A1310',  // page bg
+          850: '#0F1A16',  // surface
+          800: '#13211C',  // elevated surface
+          700: '#1A2A22',  // hover surface
+          600: '#243B30',  // borders
+          500: '#345448',
+          400: '#7C8E84',  // muted text
+          300: '#A6B5AC',
+          200: '#CCD6CE',
+          100: '#ECF1ED',  // primary text
+        },
+        // soft emerald-mint accent (was 'gold' — kept name to avoid breakage)
+        gold: {
+          DEFAULT: '#7CC295',
+          50:      '#E6F5EC',
+          100:     '#C7E8D4',
+          300:     '#9CD5B2',
+          500:     '#7CC295',
+          700:     '#3F8A5E',
+        },
+        emerald2: {
+          DEFAULT: '#7CC295',
+          deep:    '#3F8A5E',
         },
       },
       fontFamily: {
-        display: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
-        body:    ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Manrope', 'system-ui', 'sans-serif'],
+        body:    ['Inter',   'system-ui', 'sans-serif'],
+        mono:    ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        marker:  ['"Permanent Marker"', '"Caveat"', 'cursive'],
       },
-      boxShadow: {
-        glow:      '0 0 24px rgba(192,132,252,0.45)',
-        glowStrong:'0 0 36px rgba(168,85,247,0.65)',
+      letterSpacing: {
+        ultra: '0.32em',
       },
-      animation: {
-        bubble:  'bubble 6s ease-in-out infinite',
-        glitch:  'glitch 3s steps(2) infinite',
-        floaty:  'floaty 6s ease-in-out infinite',
-      },
-      keyframes: {
-        bubble: {
-          '0%':   { transform: 'translateY(20px) scale(0.8)', opacity: '0' },
-          '50%':  { opacity: '1' },
-          '100%': { transform: 'translateY(-120px) scale(1.1)', opacity: '0' },
-        },
-        glitch: {
-          '0%,100%': { textShadow: '2px 0 #C084FC, -2px 0 #A855F7' },
-          '50%':     { textShadow: '-2px 0 #C084FC, 2px 0 #A855F7' },
-        },
-        floaty: {
-          '0%,100%': { transform: 'translateY(0)' },
-          '50%':     { transform: 'translateY(-6px)' },
-        },
-      },
-      backgroundImage: {
-        'vibe-gradient': 'linear-gradient(135deg, #0B0A1A 0%, #1A0B2E 100%)',
+      borderRadius: {
+        sharp: '4px',
       },
     },
   },

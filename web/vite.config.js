@@ -8,6 +8,10 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       port: 5173,
+      host: true,
+      strictPort: true,
+      allowedHosts: true,
+      hmr: false,
       proxy: {
         '/api':    { target: apiTarget, changeOrigin: true },
         '/health': { target: apiTarget, changeOrigin: true },

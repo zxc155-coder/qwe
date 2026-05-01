@@ -11,3 +11,4 @@ web/node_modules/
 *.log
 .vscode/
 .idea/
+db/receipts/

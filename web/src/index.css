@@ -2,74 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root {
-  height: 100%;
-}
+html, body, #root { height: 100%; }
 
 body {
-  @apply font-body text-white antialiased;
-  background:
-    radial-gradient(1200px 800px at 10% -10%, rgba(192,132,252,0.18), transparent 60%),
-    radial-gradient(900px 600px at 110% 20%, rgba(168,85,247,0.15), transparent 60%),
-    linear-gradient(135deg, #0B0A1A 0%, #1A0B2E 100%);
-  background-attachment: fixed;
+  @apply font-body text-ink-100 antialiased;
+  background: #0A1310;
+  font-feature-settings: "ss01", "cv11";
 }
 
-/* лёгкий шум */
+/* refined forest background — subtle green vignette */
 body::before {
   content: '';
   pointer-events: none;
   position: fixed; inset: 0;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  opacity: 0.5;
+  background:
+    radial-gradient(1000px 600px at 50% -10%, rgba(124,194,149,0.08), transparent 60%),
+    radial-gradient(800px 500px at 100% 100%, rgba(63,138,94,0.06), transparent 60%);
   z-index: 0;
 }
 
 @layer components {
-  .glass {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+  .card {
+    @apply bg-ink-850 border border-ink-600/60 rounded-sharp;
   }
-  .neon-btn {
-    @apply px-4 py-2 rounded-xl font-semibold tracking-wide
-           border border-vibe-accent/60 text-white
-           bg-vibe-accent/10 hover:bg-vibe-accent/25
-           shadow-glow hover:shadow-glowStrong
-           transition-all duration-200 active:scale-95;
+  .card-hover {
+    @apply transition-colors duration-200 hover:border-gold/50;
   }
-  .neon-text {
-    text-shadow: 0 0 14px rgba(192,132,252,0.65), 0 0 30px rgba(168,85,247,0.45);
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           px-5 py-2.5 rounded-sharp
+           bg-gold text-ink-900 font-semibold tracking-wide
+           hover:bg-gold-300 active:bg-gold-700
+           transition-colors duration-150;
   }
-  .price-glow {
-    color: #fff;
-    text-shadow: 0 0 10px rgba(192,132,252,0.55), 0 0 22px rgba(168,85,247,0.45);
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           px-5 py-2.5 rounded-sharp
+           bg-ink-800 text-ink-100 font-medium tracking-wide
+           border border-ink-600 hover:border-gold/50 hover:bg-ink-700
+           transition-colors duration-150;
+  }
+  .btn-icon {
+    @apply inline-flex items-center justify-center
+           w-9 h-9 rounded-sharp
+           bg-ink-800 text-ink-200 border border-ink-600
+           hover:border-gold/50 hover:bg-ink-700
+           transition-colors duration-150;
   }
   .chip {
-    @apply px-3 py-1.5 rounded-full text-xs font-semibold
-           border border-white/10 bg-white/5
-           hover:bg-white/10 transition-colors;
+    @apply px-3 py-1.5 rounded-sharp text-xs font-medium
+           border border-ink-600 bg-ink-850 text-ink-200
+           hover:border-gold/40 hover:text-ink-100
+           transition-colors;
   }
   .chip-active {
-    @apply bg-vibe-accent/30 border-vibe-accent/70 text-white shadow-glow;
+    @apply bg-gold text-ink-900 border-gold;
+  }
+  .label-mute {
+    @apply text-[11px] uppercase tracking-ultra text-ink-400 font-medium;
+  }
+  .input {
+    @apply w-full bg-ink-850 border border-ink-600 rounded-sharp
+           px-4 py-3 text-ink-100 placeholder-ink-400
+           outline-none focus:border-gold transition-colors;
   }
 }
 
-/* пузырьки пара */
-.bubble {
-  position: absolute;
-  bottom: -40px;
-  width: 14px; height: 14px;
-  border-radius: 9999px;
-  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(192,132,252,0.4) 60%, transparent 70%);
-  filter: blur(0.5px);
-  animation: bubble 6s ease-in-out infinite;
+/* ─── Marble shop-shelf treatment for product cards ─── */
+.marble-bg {
+  background-image:
+    linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.15) 100%),
+    url('/textures/marble.jpg');
+  background-size: cover;
+  background-position: center;
 }
 
-@keyframes bubble {
-  0%   { transform: translateY(0) scale(0.6); opacity: 0; }
-  20%  { opacity: 0.9; }
-  100% { transform: translateY(-300px) scale(1.2); opacity: 0; }
+/* white marker handwritten watermark */
+.marker-watermark {
+  font-family: 'Permanent Marker', 'Caveat', cursive;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+  text-shadow:
+    0 1px 2px rgba(0,0,0,0.18),
+    0 0 1px rgba(255,255,255,0.4);
+  transform: rotate(-3deg);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* tile button used on landing screen and bottom nav */
+.tile {
+  @apply relative overflow-hidden rounded-sharp border border-ink-600
+         bg-ink-850 hover:border-gold/60 transition-colors duration-200;
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: #243B30; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #345448; }
 ::-webkit-scrollbar-track { background: transparent; }
+
+img { display: block; }

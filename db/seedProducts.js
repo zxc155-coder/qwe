@@ -1,5 +1,50 @@
 import db from './database.js';
 
+/* ─── Curated product imagery (Unsplash, free license, product-only — no people) ─── */
+const U  = (id) => `https://images.unsplash.com/${id}?w=900&h=900&fit=crop&q=80&auto=format`;
+const UP = (id) => `https://plus.unsplash.com/${id}?w=900&h=900&fit=crop&q=80&auto=format`;
+
+// Disposable / pen-style vapes — product shots only
+const DISP_IMAGES = [
+  U('photo-1741771308130-84e25ffefc8b'), // pink disposable on concrete
+  U('photo-1606333545291-c1ff7fa91d31'), // STLTH disposable
+  U('photo-1530745342582-0795f23ec976'), // vape devices display
+  U('photo-1623071280399-238e1f181fa6'), // black tube vape on white
+  U('photo-1579165466814-e646cfa4a3be'), // vape devices in display rack
+];
+
+// E-liquid bottles
+const LIQ_IMAGES = [
+  U('photo-1715613814310-495d5f4256a2'), // pod + e-liquid bottle
+  U('photo-1553289469-615ef4cde485'),   // e-juice bottle on grey
+  U('photo-1519416985016-549fe88e380d'), // naked vape juice bottle
+  U('photo-1676914880511-11858c619845'), // e-liquid + device
+  U('photo-1618589036063-e78447db6936'), // colourful liquid bottles
+  U('photo-1749244217993-5ed475589068'), // bottle on neon
+];
+
+// Pods / mods / devices
+const POD_IMAGES = [
+  U('photo-1715613814310-495d5f4256a2'), // pod kit
+  U('photo-1563330107-2be055371737'),    // black mod
+  U('photo-1623071280399-238e1f181fa6'), // tube vape
+  U('photo-1579165466814-e646cfa4a3be'), // device display
+];
+
+// Accessories — coils / batteries / chargers (recycle product shots)
+const ACC_IMAGES = [
+  U('photo-1530745342582-0795f23ec976'),
+  U('photo-1563330107-2be055371737'),
+  U('photo-1579165466814-e646cfa4a3be'),
+];
+
+// Snus / nicotine pouches — pure product shots
+const SNUS_IMAGES = [
+  U('photo-1680429528539-19e0b9762a9d'),                   // ZYN tin in snow
+  UP('premium_photo-1741708871689-b5b5936a55ec'),          // pouches in tin
+  UP('premium_photo-1741708875611-30f6111b4156'),          // pouches in container
+];
+
 const FLAVORS = [
   'Арбуз-лед', 'Манго-маракуйя', 'Клубника-банан', 'Виноградный сок',
   'Колотый лед', 'Энергетик', 'Бабл-гам', 'Лимон-лайм', 'Ананас-кокос',
@@ -33,55 +78,50 @@ const LIQUID_BRANDS  = ['Nasty', 'Dead Rabbit', 'Bad Drip', 'Pacho', 'Salt', 'Hu
 const LIQUID_VOLUMES = ['30ml', '60ml', '100ml', '120ml'];
 
 const POD_MODELS = [
-  { brand: 'VooPoo',     name: 'Argus P1' },
-  { brand: 'VooPoo',     name: 'Drag X2' },
-  { brand: 'SMOK',       name: 'Novo 5' },
-  { brand: 'SMOK',       name: 'Nord 50W' },
-  { brand: 'GeekVape',   name: 'Wenax K2' },
-  { brand: 'GeekVape',   name: 'Aegis Boost 3' },
-  { brand: 'Vaporesso',  name: 'XROS 4 Mini' },
-  { brand: 'Vaporesso',  name: 'Luxe X Pro' },
-  { brand: 'OXVA',       name: 'Xlim Pro' },
-  { brand: 'OXVA',       name: 'Oneo' },
+  { brand: 'VooPoo',    name: 'Argus P1' },
+  { brand: 'VooPoo',    name: 'Drag X2' },
+  { brand: 'SMOK',      name: 'Novo 5' },
+  { brand: 'SMOK',      name: 'Nord 50W' },
+  { brand: 'GeekVape',  name: 'Wenax K2' },
+  { brand: 'GeekVape',  name: 'Aegis Boost 3' },
+  { brand: 'Vaporesso', name: 'XROS 4 Mini' },
+  { brand: 'Vaporesso', name: 'Luxe X Pro' },
+  { brand: 'OXVA',      name: 'Xlim Pro' },
+  { brand: 'OXVA',      name: 'Oneo' },
 ];
 
 const ACCESSORIES = [
   { brand: 'Wotofo',    name: 'Сменные испарители 0.4 Ом (5 шт)', desc: 'Mesh-катушки для прямой парогенерации.' },
-  { brand: 'GeekVape',  name: 'Аккумулятор 18650 3000mAh',         desc: 'Высокотоковый аккумулятор для боксмодов.' },
+  { brand: 'GeekVape',  name: 'Аккумулятор 18650 3000 mAh',        desc: 'Высокотоковый аккумулятор для боксмодов.' },
   { brand: 'Vaporesso', name: 'Зарядное устройство Type-C',         desc: 'Быстрая зарядка для пода и устройств.' },
-  { brand: 'SMOK',      name: 'Сменный картридж 4ml',               desc: 'Запасной картридж с сетчатой катушкой.' },
+  { brand: 'SMOK',      name: 'Сменный картридж 4 ml',              desc: 'Запасной картридж с сетчатой катушкой.' },
   { brand: 'OXVA',      name: 'Силиконовый чехол Xlim',             desc: 'Защитный чехол с ремешком на руку.' },
 ];
 
+const SNUS_BRANDS = ['ZYN', 'Velo', 'Pablo', 'Killa', 'Lyft', 'Siberia', 'Skruf', 'Loop', 'Iceberg', 'Fix'];
+const SNUS_FLAVORS = [
+  'Cool Mint', 'Spearmint', 'Citrus', 'Cherry', 'Bubblegum',
+  'Tropical', 'Wintergreen', 'Watermelon', 'Espresso', 'Apple Mint',
+];
+const SNUS_STRENGTHS = ['6mg', '9mg', '20mg', '50mg', '70mg', '100mg'];
+
 const rand    = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
 const pick    = (arr)  => arr[Math.floor(Math.random() * arr.length)];
-const round90 = (n)    => Math.round(n / 10) * 10 - 1; // даёт цены типа 1290, 1690 и т.д.
+const round90 = (n)    => Math.round(n / 10) * 10 - 1;
 
 function buildDisposables() {
-  const out = [];
-  for (let i = 0; i < 15; i++) {
-    const m      = DISP_MODELS[i % DISP_MODELS.length];
+  return DISP_MODELS.map((m, i) => {
     const flavor = pick(FLAVORS);
     const price  = round90(800 + m.puffs * 0.18 + rand(0, 400));
-    out.push({
-      brand: m.brand,
-      name: m.name,
-      category: 'disposable',
-      type: 'Одноразка',
-      flavor,
-      strength: pick(STRENGTHS_DISP),
-      puffs: m.puffs,
-      volume: null,
-      battery: m.battery,
-      price,
-      old_price: rand(0, 1) ? round90(price * 1.25) : null,
+    return {
+      brand: m.brand, name: m.name, category: 'disposable', type: 'Одноразка',
+      flavor, strength: pick(STRENGTHS_DISP), puffs: m.puffs, volume: null, battery: m.battery,
+      price, old_price: rand(0, 1) ? round90(price * 1.25) : null,
       rating: +(4.3 + Math.random() * 0.6).toFixed(1),
-      image: `https://picsum.photos/seed/vibe-disp-${i}/600/600`,
-      in_stock: 1,
+      image: DISP_IMAGES[i % DISP_IMAGES.length], in_stock: 1,
       description: `Компактная одноразка ${m.brand} ${m.name} с насыщенным вкусом «${flavor}». До ${m.puffs} затяжек, аккумулятор ${m.battery}.`,
-    });
-  }
-  return out;
+    };
+  });
 }
 
 function buildLiquids() {
@@ -94,20 +134,11 @@ function buildLiquids() {
     const base     = volume === '30ml' ? 550 : volume === '60ml' ? 850 : volume === '100ml' ? 1200 : 1450;
     const price    = round90(base + rand(0, 200));
     out.push({
-      brand,
-      name: `${flavor} ${volume}`,
-      category: 'liquid',
-      type: 'Жидкость',
-      flavor,
-      strength,
-      puffs: null,
-      volume,
-      battery: null,
-      price,
-      old_price: rand(0, 2) === 0 ? round90(price * 1.2) : null,
+      brand, name: `${flavor} ${volume}`, category: 'liquid', type: 'Жидкость',
+      flavor, strength, puffs: null, volume, battery: null,
+      price, old_price: rand(0, 2) === 0 ? round90(price * 1.2) : null,
       rating: +(4.2 + Math.random() * 0.7).toFixed(1),
-      image: `https://picsum.photos/seed/vibe-liq-${i}/600/600`,
-      in_stock: 1,
+      image: LIQ_IMAGES[i % LIQ_IMAGES.length], in_stock: 1,
       description: `Премиальная жидкость ${brand} объёмом ${volume}, крепость ${strength}. Сбалансированный вкус «${flavor}».`,
     });
   }
@@ -115,50 +146,51 @@ function buildLiquids() {
 }
 
 function buildPods() {
-  const out = [];
-  for (let i = 0; i < 10; i++) {
-    const m      = POD_MODELS[i % POD_MODELS.length];
-    const power  = pick([15, 18, 25, 30, 40, 50, 80]);
-    const price  = round90(2200 + power * 35 + rand(0, 600));
-    out.push({
-      brand: m.brand,
-      name: m.name,
-      category: 'pod',
-      type: 'POD-система',
-      flavor: null,
-      strength: null,
-      puffs: null,
+  return POD_MODELS.map((m, i) => {
+    const power = pick([15, 18, 25, 30, 40, 50, 80]);
+    const price = round90(2200 + power * 35 + rand(0, 600));
+    return {
+      brand: m.brand, name: m.name, category: 'pod', type: 'POD-система',
+      flavor: null, strength: null, puffs: null,
       volume: pick(['2ml', '3ml', '4ml']),
       battery: pick(['1000mAh', '1500mAh', '2000mAh', '2500mAh']),
-      price,
-      old_price: rand(0, 1) ? round90(price * 1.18) : null,
+      price, old_price: rand(0, 1) ? round90(price * 1.18) : null,
       rating: +(4.4 + Math.random() * 0.5).toFixed(1),
-      image: `https://picsum.photos/seed/vibe-pod-${i}/600/600`,
-      in_stock: 1,
+      image: POD_IMAGES[i % POD_IMAGES.length], in_stock: 1,
       description: `POD-система ${m.brand} ${m.name}. Мощность до ${power}W, быстрая зарядка Type-C, сменные картриджи.`,
-    });
-  }
-  return out;
+    };
+  });
 }
 
 function buildAccessories() {
   return ACCESSORIES.map((a, i) => ({
-    brand: a.brand,
-    name: a.name,
-    category: 'accessory',
-    type: 'Аксессуар',
-    flavor: null,
-    strength: null,
-    puffs: null,
-    volume: null,
-    battery: null,
+    brand: a.brand, name: a.name, category: 'accessory', type: 'Аксессуар',
+    flavor: null, strength: null, puffs: null, volume: null, battery: null,
     price: round90(450 + i * 220 + rand(0, 200)),
     old_price: null,
     rating: +(4.5 + Math.random() * 0.4).toFixed(1),
-    image: `https://picsum.photos/seed/vibe-acc-${i}/600/600`,
-    in_stock: 1,
+    image: ACC_IMAGES[i % ACC_IMAGES.length], in_stock: 1,
     description: a.desc,
   }));
+}
+
+function buildSnus() {
+  const out = [];
+  for (let i = 0; i < 10; i++) {
+    const brand    = SNUS_BRANDS[i % SNUS_BRANDS.length];
+    const flavor   = pick(SNUS_FLAVORS);
+    const strength = pick(SNUS_STRENGTHS);
+    const price    = round90(450 + (parseInt(strength) || 6) * 8 + rand(0, 200));
+    out.push({
+      brand, name: `${flavor} ${strength}`, category: 'snus', type: 'Снюс',
+      flavor, strength, puffs: null, volume: null, battery: null,
+      price, old_price: rand(0, 2) === 0 ? round90(price * 1.18) : null,
+      rating: +(4.4 + Math.random() * 0.5).toFixed(1),
+      image: SNUS_IMAGES[i % SNUS_IMAGES.length], in_stock: 1,
+      description: `Никотиновые подушечки ${brand} «${flavor}». Крепость ${strength}, без табака, без курения.`,
+    });
+  }
+  return out;
 }
 
 const PRODUCTS = [
@@ -166,6 +198,7 @@ const PRODUCTS = [
   ...buildLiquids(),
   ...buildPods(),
   ...buildAccessories(),
+  ...buildSnus(),
 ];
 
 const insert = db.prepare(`
@@ -177,13 +210,20 @@ const insert = db.prepare(`
      @price, @old_price, @rating, @image, @in_stock, @description)
 `);
 
+// products are referenced by cart_items / favorites / order_items;
+// drop dependents (carts/favorites are session-scoped) and keep order history intact.
+// products are referenced by cart / favorites / order_items.
+// FK pragma must be toggled OUTSIDE the transaction (sqlite ignores it inside).
+db.pragma('foreign_keys = OFF');
 const txn = db.transaction((items) => {
+  db.prepare('DELETE FROM cart').run();
+  db.prepare('DELETE FROM favorites').run();
   db.prepare('DELETE FROM products').run();
   for (const it of items) insert.run(it);
 });
-
 txn(PRODUCTS);
+db.pragma('foreign_keys = ON');
 
 const total = db.prepare('SELECT COUNT(*) AS c FROM products').get().c;
-console.log(`☁️  VIBE CLOUD: засеяно ${total} товаров.`);
+console.log(`VIBE CLOUD: засеяно ${total} товаров.`);
 process.exit(0);

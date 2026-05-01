@@ -1,17 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from './components/ProductCard.jsx';
-import CartDrawer from './components/CartDrawer.jsx';
+import CartDrawer  from './components/CartDrawer.jsx';
+import { apiUrl } from './api.js';
 
-const CATEGORIES = [
+const VAPE_CATEGORIES = [
   { key: 'all',        label: 'Все' },
-  { key: 'disposable', label: '💨 Одноразки' },
-  { key: 'liquid',     label: '🧪 Жидкости' },
-  { key: 'pod',        label: '🔋 POD-системы' },
-  { key: 'accessory',  label: '🧰 Аксессуары' },
+  { key: 'disposable', label: 'Одноразки' },
+  { key: 'liquid',     label: 'Жидкости' },
+  { key: 'pod',        label: 'POD-системы' },
+  { key: 'accessory',  label: 'Аксессуары' },
+];
+
+const SNUS_CATEGORIES = [
+  { key: 'all', label: 'Все' },
 ];
 
 const STRENGTHS = ['все', '0mg', '3mg', '6mg', '12mg', '20mg', '50mg'];
+const SNUS_STRENGTHS = ['все', '6mg', '9mg', '20mg', '50mg', '70mg', '100mg'];
 const PAGE_SIZE = 12;
 
 function getTgUserId() {
@@ -19,26 +25,33 @@ function getTgUserId() {
     const tg = window?.Telegram?.WebApp;
     if (tg?.initDataUnsafe?.user?.id) return tg.initDataUnsafe.user.id;
   } catch {}
-  // dev fallback so the app works in plain browser
-  return 0;
+  return 0; // dev fallback
 }
 
+const fmt = (n) => `${Number(n).toLocaleString('ru-RU')} ₽`;
+
 export default function App() {
-  const [products, setProducts] = useState([]);
-  const [cart, setCart]         = useState([]);
+  const [mode,      setMode]      = useState('landing'); // 'landing' | 'vapes' | 'snus'
+  const [products,  setProducts]  = useState([]);
+  const [cart,      setCart]      = useState([]);
   const [favorites, setFavorites] = useState([]);
-  const [query, setQuery]       = useState('');
-  const [category, setCategory] = useState('all');
-  const [strength, setStrength] = useState('все');
-  const [visible, setVisible]   = useState(PAGE_SIZE);
-  const [drawerOpen, setDrawer] = useState(false);
-  const [loading, setLoading]   = useState(true);
+  const [query,     setQuery]     = useState('');
+  const [category,  setCategory]  = useState('all');
+  const [strength,  setStrength]  = useState('все');
+  const [visible,   setVisible]   = useState(PAGE_SIZE);
+  const [drawerOpen, setDrawer]   = useState(false);
+  const [loading,   setLoading]   = useState(true);
 
   const tgId = useMemo(() => getTgUserId(), []);
 
   useEffect(() => {
     const tg = window?.Telegram?.WebApp;
-    try { tg?.ready(); tg?.expand(); } catch {}
+    try {
+      tg?.ready();
+      tg?.expand();
+      tg?.setHeaderColor?.('#0A0A0B');
+      tg?.setBackgroundColor?.('#0A0A0B');
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -46,9 +59,9 @@ export default function App() {
     (async () => {
       try {
         const [p, c, f] = await Promise.all([
-          fetch('/api/products').then((r) => r.json()),
-          fetch(`/api/cart/${tgId}`).then((r) => r.json()),
-          fetch(`/api/favorites/${tgId}`).then((r) => r.json()),
+          fetch(apiUrl('/api/products')).then((r) => r.json()),
+          fetch(apiUrl(`/api/cart/${tgId}`)).then((r) => r.json()),
+          fetch(apiUrl(`/api/favorites/${tgId}`)).then((r) => r.json()),
         ]);
         if (!alive) return;
         setProducts(p);
@@ -63,8 +76,12 @@ export default function App() {
     return () => { alive = false; };
   }, [tgId]);
 
+  const isVapeCat = (c) => c !== 'snus';
+
   const filtered = useMemo(() => {
     return products.filter((p) => {
+      if (mode === 'snus' && p.category !== 'snus') return false;
+      if (mode === 'vapes' && !isVapeCat(p.category)) return false;
       if (category !== 'all' && p.category !== category) return false;
       if (strength !== 'все' && p.strength !== strength) return false;
       if (query) {
@@ -77,9 +94,9 @@ export default function App() {
       }
       return true;
     });
-  }, [products, category, strength, query]);
+  }, [products, mode, category, strength, query]);
 
-  useEffect(() => { setVisible(PAGE_SIZE); }, [category, strength, query]);
+  useEffect(() => { setVisible(PAGE_SIZE); }, [mode, category, strength, query]);
 
   // infinite scroll
   useEffect(() => {
@@ -93,17 +110,16 @@ export default function App() {
   }, [filtered.length]);
 
   async function addToCart(productId) {
-    const res = await fetch(`/api/cart/${tgId}/add`, {
+    const res = await fetch(apiUrl(`/api/cart/${tgId}/add`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ productId }),
     });
     setCart(await res.json());
-    setDrawer(true);
   }
 
   async function changeQty(productId, qty) {
-    const res = await fetch(`/api/cart/${tgId}/qty`, {
+    const res = await fetch(apiUrl(`/api/cart/${tgId}/qty`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ productId, qty }),
@@ -112,13 +128,13 @@ export default function App() {
   }
 
   async function clearCart() {
-    const res = await fetch(`/api/cart/${tgId}/clear`, { method: 'POST' });
+    const res = await fetch(apiUrl(`/api/cart/${tgId}/clear`), { method: 'POST' });
     setCart(await res.json());
   }
 
   async function toggleFavorite(p) {
     const on = !favorites.includes(p.id);
-    const res = await fetch(`/api/favorites/${tgId}/toggle`, {
+    const res = await fetch(apiUrl(`/api/favorites/${tgId}/toggle`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ productId: p.id, on }),
@@ -128,7 +144,7 @@ export default function App() {
   }
 
   async function checkout(form) {
-    const res = await fetch(`/api/orders/${tgId}`, {
+    const res = await fetch(apiUrl(`/api/orders/${tgId}`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -139,91 +155,71 @@ export default function App() {
     return data;
   }
 
+  function goCategory(target) {
+    setMode(target);
+    setCategory('all');
+    setStrength('все');
+    setQuery('');
+  }
+
   const cartCount = cart.reduce((s, it) => s + it.qty, 0);
   const totalSum  = cart.reduce((s, it) => s + it.price * it.qty, 0);
 
-  return (
-    <div className="relative min-h-screen z-10">
-      {/* floating bubbles */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        {Array.from({ length: 14 }).map((_, i) => (
-          <span
-            key={i}
-            className="bubble"
-            style={{
-              left: `${(i * 73) % 100}%`,
-              animationDelay: `${(i * 0.6) % 5}s`,
-              transform: `scale(${0.6 + ((i * 17) % 10) / 10})`,
-            }}
-          />
-        ))}
-      </div>
+  const cats       = mode === 'snus' ? SNUS_CATEGORIES : VAPE_CATEGORIES;
+  const strengths  = mode === 'snus' ? SNUS_STRENGTHS  : STRENGTHS;
+  const sectionTitle = mode === 'snus' ? 'Снюс' : 'Вейпы';
 
+  return (
+    <div className="relative min-h-screen z-10 pb-32 md:pb-10">
       <Header
+        mode={mode}
         cartCount={cartCount}
         onOpenCart={() => setDrawer(true)}
+        onHome={() => setMode('landing')}
       />
 
-      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 pb-24 pt-6">
-        <Hero />
-
-        <div className="glass p-4 mt-8 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="🔎 Поиск: бренд, вкус, название…"
-            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-vibe-accent placeholder-white/40"
-          />
-          <div className="flex gap-2 flex-wrap">
-            {STRENGTHS.map((s) => (
-              <button
-                key={s}
-                onClick={() => setStrength(s)}
-                className={`chip ${strength === s ? 'chip-active' : ''}`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-4 flex gap-2 flex-wrap">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.key}
-              onClick={() => setCategory(c.key)}
-              className={`chip ${category === c.key ? 'chip-active' : ''}`}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-
-        {loading ? (
-          <Skeleton />
+      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-6 md:pt-8">
+        {mode === 'landing' ? (
+          <Landing onPick={goCategory} />
         ) : (
-          <motion.div
-            layout
-            className="mt-8 grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-          >
-            <AnimatePresence>
-              {filtered.slice(0, visible).map((p) => (
-                <ProductCard
-                  key={p.id}
-                  product={p}
-                  isFavorite={favorites.includes(p.id)}
-                  onAdd={() => addToCart(p.id)}
-                  onFav={() => toggleFavorite(p)}
-                />
-              ))}
-            </AnimatePresence>
-          </motion.div>
-        )}
+          <>
+            <SectionHero title={sectionTitle} mode={mode} />
 
-        {!loading && filtered.length === 0 && (
-          <p className="text-center text-white/60 mt-16">
-            Ничего не нашлось. Попробуй другие фильтры 🫧
-          </p>
+            <Toolbar
+              query={query} setQuery={setQuery}
+              strength={strength} setStrength={setStrength}
+              strengths={strengths}
+              category={category} setCategory={setCategory}
+              cats={cats}
+            />
+
+            {loading ? (
+              <Skeleton />
+            ) : (
+              <motion.div
+                layout
+                className="mt-6 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              >
+                <AnimatePresence>
+                  {filtered.slice(0, visible).map((p) => (
+                    <ProductCard
+                      key={p.id}
+                      product={p}
+                      isFavorite={favorites.includes(p.id)}
+                      onAdd={() => addToCart(p.id)}
+                      onFav={() => toggleFavorite(p)}
+                    />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+            )}
+
+            {!loading && filtered.length === 0 && (
+              <p className="text-center text-ink-400 mt-16">
+                Ничего не нашлось — попробуйте другие фильтры.
+              </p>
+            )}
+          </>
         )}
       </main>
 
@@ -237,77 +233,226 @@ export default function App() {
         onCheckout={checkout}
       />
 
+      {/* sticky bottom cart bar (mobile-first) */}
+      {cartCount > 0 && (
+        <motion.div
+          initial={{ y: 80, opacity: 0 }}
+          animate={{ y: 0,  opacity: 1 }}
+          className="fixed bottom-3 left-3 right-3 md:left-auto md:right-6 md:bottom-6
+                     md:max-w-md z-30
+                     bg-ink-850/95 backdrop-blur-md border border-gold/40 rounded-sharp
+                     shadow-[0_18px_44px_rgba(0,0,0,0.55)]"
+        >
+          <button
+            onClick={() => setDrawer(true)}
+            className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left"
+          >
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center justify-center min-w-[36px] h-[36px]
+                               px-2 rounded-sharp bg-gold text-ink-900 font-bold tabular-nums">
+                {cartCount}
+              </span>
+              <div>
+                <div className="text-xs text-ink-400 uppercase tracking-widest">Корзина</div>
+                <div className="font-display text-base font-semibold tabular-nums">{fmt(totalSum)}</div>
+              </div>
+            </div>
+            <span className="text-gold font-medium">Открыть →</span>
+          </button>
+        </motion.div>
+      )}
+
       <Footer />
     </div>
   );
 }
 
-function Header({ cartCount, onOpenCart }) {
-  return (
-    <header className="sticky top-0 z-30 backdrop-blur-xl bg-vibe-bg0/60 border-b border-white/10">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3">
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3"
-        >
-          <span className="text-2xl animate-floaty">💨</span>
-          <span className="font-display text-2xl tracking-widest neon-text animate-glitch">
-            VIBE&nbsp;CLOUD
-          </span>
-        </motion.div>
+/* ─── Header ─── */
 
-        <button onClick={onOpenCart} className="relative neon-btn">
-          🛒 Корзина
-          {cartCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-vibe-accent2 text-white text-xs font-bold rounded-full w-6 h-6 grid place-items-center shadow-glow">
-              {cartCount}
-            </span>
-          )}
+function Header({ mode, cartCount, onOpenCart, onHome }) {
+  return (
+    <header className="sticky top-0 z-30 bg-ink-900/95 backdrop-blur-sm border-b border-ink-600/60">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3 md:py-4">
+        <button onClick={onHome} className="flex items-center gap-2 group">
+          <span className="font-display text-lg sm:text-xl font-bold text-gold tracking-[0.32em]">
+            VIBE
+          </span>
+          <span className="font-display text-lg sm:text-xl font-bold text-ink-100 tracking-[0.32em]">
+            CLOUD
+          </span>
         </button>
+
+        <div className="flex items-center gap-2">
+          {mode !== 'landing' && (
+            <button onClick={onHome} className="btn-ghost text-xs sm:text-sm px-3 sm:px-4 py-2">
+              ← Меню
+            </button>
+          )}
+          <button onClick={onOpenCart} className="btn-ghost relative text-xs sm:text-sm px-3 sm:px-4 py-2">
+            Корзина
+            {cartCount > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center
+                               min-w-[20px] h-[20px] px-1.5 rounded-full
+                               bg-gold text-ink-900 text-xs font-bold">
+                {cartCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
     </header>
   );
 }
 
-function Hero() {
+/* ─── Landing screen with two big tiles ─── */
+
+function Landing({ onPick }) {
+  const tiles = [
+    {
+      key: 'vapes',
+      title: 'ВЕЙПЫ',
+      sub: 'Одноразки · жидкости · POD-системы · аксессуары',
+    },
+    {
+      key: 'snus',
+      title: 'СНЮС',
+      sub: 'Никотиновые подушечки без табака',
+    },
+  ];
+
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="glass p-8 md:p-12 mt-2 relative overflow-hidden"
-    >
-      <div className="absolute inset-0 -z-10 opacity-50"
-           style={{ background: 'radial-gradient(600px 200px at 70% 0%, rgba(192,132,252,0.35), transparent 60%)' }}/>
-      <h1 className="font-display text-4xl md:text-6xl tracking-wider neon-text">
-        Премиум вейпшоп <span className="text-vibe-accent">в облаке</span>
+    <section className="pt-2 md:pt-6">
+      <p className="label-mute mb-3">Премиум вейпшоп · доставка по городу</p>
+      <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-bold text-ink-100
+                     leading-[1.05] tracking-tight max-w-3xl">
+        Что сегодня <span className="text-emerald-300">в ассортименте?</span>
       </h1>
-      <p className="mt-3 text-white/70 max-w-2xl">
-        ~50 позиций: одноразки, жидкости, поды и аксессуары. Доставка по городу,
-        синхронизация корзины с Telegram-ботом, оплата при получении.
+      <p className="mt-4 text-ink-300 text-sm sm:text-base max-w-xl leading-relaxed">
+        Выбирай раздел — каталог откроется с фильтрами. Корзина одна на оба раздела.
       </p>
-      <p className="mt-6 text-xs text-white/40 uppercase tracking-[0.3em]">
-        18+ • никотин вызывает зависимость
-      </p>
-    </motion.section>
+
+      <div className="mt-8 md:mt-12 grid gap-4 md:gap-5 grid-cols-1 sm:grid-cols-2">
+        {tiles.map((t) => (
+          <motion.button
+            key={t.key}
+            whileTap={{ scale: 0.985 }}
+            onClick={() => onPick(t.key)}
+            className="tile group text-left"
+          >
+            <div className="relative aspect-[16/10] sm:aspect-[4/3] overflow-hidden
+                            bg-gradient-to-br from-ink-900 via-ink-800 to-ink-900
+                            border-b border-ink-100/10
+                            flex flex-col justify-between px-6 py-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-ink-400">
+                VIBE CLOUD · {t.key === 'snus' ? 'snus' : 'vape'}
+              </p>
+              <h3 className="font-display text-[44px] sm:text-[64px] md:text-[80px] font-extrabold
+                             text-ink-100 leading-none tracking-tight">
+                {t.title}
+              </h3>
+              <span className="self-end text-emerald-300 font-semibold text-sm">Открыть →</span>
+            </div>
+            <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-4">
+              <div>
+                <h3 className="font-display text-xl sm:text-2xl font-bold text-ink-100 tracking-tight">
+                  {t.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-ink-400 mt-1">{t.sub}</p>
+              </div>
+            </div>
+          </motion.button>
+        ))}
+      </div>
+
+      <p className="mt-10 label-mute">18+ · никотин вызывает зависимость</p>
+    </section>
   );
 }
 
+/* ─── Section hero (above category list) ─── */
+
+function SectionHero({ title, mode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="border-b border-ink-600/60 pb-5"
+    >
+      <p className="label-mute">{mode === 'snus' ? 'Никотиновые подушечки' : 'Электронные системы'}</p>
+      <h1 className="font-display text-3xl sm:text-5xl font-bold text-ink-100 leading-tight tracking-tight">
+        {title}
+        <span className="text-gold">.</span>
+      </h1>
+    </motion.div>
+  );
+}
+
+/* ─── Toolbar ─── */
+
+function Toolbar({ query, setQuery, strength, setStrength, strengths, category, setCategory, cats }) {
+  return (
+    <>
+      <div className="card mt-5 p-2.5 sm:p-3 flex flex-col gap-2.5 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 select-none">⌕</span>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Поиск: бренд, вкус, название"
+            className="input pl-9 py-2.5 sm:py-3"
+          />
+        </div>
+        <div className="flex gap-1.5 flex-wrap">
+          {strengths.map((s) => (
+            <button
+              key={s}
+              onClick={() => setStrength(s)}
+              className={`chip ${strength === s ? 'chip-active' : ''}`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {cats.length > 1 && (
+        <div className="mt-3 flex gap-1.5 flex-wrap">
+          {cats.map((c) => (
+            <button
+              key={c.key}
+              onClick={() => setCategory(c.key)}
+              className={`chip ${category === c.key ? 'chip-active' : ''}`}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ─── Skeleton ─── */
+
 function Skeleton() {
   return (
-    <div className="mt-8 grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="mt-6 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="glass h-80 animate-pulse"/>
+        <div key={i} className="card aspect-[3/5] animate-pulse"/>
       ))}
     </div>
   );
 }
 
+/* ─── Footer ─── */
+
 function Footer() {
   return (
-    <footer className="relative mt-12 border-t border-white/10 py-8 text-center text-white/50 text-sm">
-      © {new Date().getFullYear()} VIBE CLOUD — премиум вейпшоп. 18+
+    <footer className="relative border-t border-ink-600/60 py-8 mt-10 text-center text-ink-400 text-xs sm:text-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        VIBE CLOUD · @VibeCloudRuBot · 18+
+      </div>
     </footer>
   );
 }
