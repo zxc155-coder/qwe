@@ -1,0 +1,36 @@
+# Render Blueprint — VIBE CLOUD bot + API combined service
+# Usage: connect this repo to Render → New → Blueprint → autodetects this file.
+services:
+  - type: web
+    name: vibe-cloud-bot
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/products
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    envVars:
+      # Render injects PORT — bot/api must listen on it. We forward via API_PORT.
+      - key: API_PORT
+        value: "10000"
+      - key: PORT
+        value: "10000"
+      - key: ADMIN_ID
+        value: "8417505079"
+      - key: WEB_APP_URL
+        value: https://dist-jaxsjdqg.devinapps.com
+      - key: CARD_NUMBER
+        value: "+7 (243) 456-78-78"
+      - key: CARD_HOLDER
+        value: "Альфа-Банк (СБП)"
+      - key: SUPPORT_USERNAME
+        value: "@VibeCloudSupport"
+      # Free plan has no persistent disk — sqlite lives on the container fs and
+      # is re-seeded on every cold start. User data may be lost on redeploy.
+      - key: DB_PATH
+        value: /app/data/vibe_cloud.sqlite
+      - key: RECEIPTS_DIR
+        value: /app/data/receipts
+      # Bot token is set manually in the Render dashboard (Environment tab).
+      - key: BOT_TOKEN
+        sync: false

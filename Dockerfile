@@ -22,7 +22,6 @@ RUN apt-get update \
 
 WORKDIR /app
 ENV NODE_ENV=production
-ENV API_PORT=3001
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
@@ -30,9 +29,10 @@ COPY api ./api
 COPY bot ./bot
 COPY db  ./db
 
-# Persistent volume mount-point for sqlite + uploaded receipts
-RUN mkdir -p /data/db /data/db/receipts
-ENV DB_PATH=/data/db/vibe_cloud.sqlite
+# Default DB lives inside the image dir; can be overridden by env (e.g. /data on Fly volume)
+RUN mkdir -p /app/data
+ENV DB_PATH=/app/data/vibe_cloud.sqlite
+ENV RECEIPTS_DIR=/app/data/receipts
 
 EXPOSE 3001
 

@@ -1239,7 +1239,7 @@ bot.catch((err, ctx) => {
 
 /* ───────────────────── 🫧  Запуск ───────────────────── */
 
-const apiPort = Number(process.env.API_PORT || 3001);
+const apiPort = Number(process.env.PORT || process.env.API_PORT || 3001);
 startApi({ port: apiPort, bot });
 
 bot.launch().then(() => {
