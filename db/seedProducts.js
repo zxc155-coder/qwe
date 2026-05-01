@@ -54,7 +54,9 @@ const FLAVORS = [
 ];
 
 const STRENGTHS_DISP = ['20mg', '50mg'];
-const STRENGTHS_LIQ  = ['0mg', '3mg', '6mg', '12mg', '20mg'];
+// Standard freebase liquids (low/no-nic); strong saltnic liquids handled separately
+const STRENGTHS_LIQ      = ['0mg', '3mg', '6mg', '12mg', '20mg'];
+const STRENGTHS_SALTNIC  = ['20mg', '30mg', '40mg', '50mg', '60mg'];
 
 const DISP_MODELS = [
   { brand: 'HQD',       name: 'Cuvie Plus 1200',  puffs: 1200, battery: '650mAh' },
@@ -84,7 +86,13 @@ const POD_MODELS = [
   { brand: 'SMOK',      name: 'Nord 50W' },
   { brand: 'GeekVape',  name: 'Wenax K2' },
   { brand: 'GeekVape',  name: 'Aegis Boost 3' },
+  // Vaporesso XROS — полная линейка
+  { brand: 'Vaporesso', name: 'XROS 3' },
+  { brand: 'Vaporesso', name: 'XROS 3 Mini' },
+  { brand: 'Vaporesso', name: 'XROS 3 Nano' },
+  { brand: 'Vaporesso', name: 'XROS 4' },
   { brand: 'Vaporesso', name: 'XROS 4 Mini' },
+  { brand: 'Vaporesso', name: 'XROS Pro' },
   { brand: 'Vaporesso', name: 'Luxe X Pro' },
   { brand: 'OXVA',      name: 'Xlim Pro' },
   { brand: 'OXVA',      name: 'Oneo' },
@@ -126,6 +134,7 @@ function buildDisposables() {
 
 function buildLiquids() {
   const out = [];
+  // 20 стандартных (freebase, 0–20 mg)
   for (let i = 0; i < 20; i++) {
     const brand    = pick(LIQUID_BRANDS);
     const flavor   = pick(FLAVORS);
@@ -140,6 +149,24 @@ function buildLiquids() {
       rating: +(4.2 + Math.random() * 0.7).toFixed(1),
       image: LIQ_IMAGES[i % LIQ_IMAGES.length], in_stock: 1,
       description: `Премиальная жидкость ${brand} объёмом ${volume}, крепость ${strength}. Сбалансированный вкус «${flavor}».`,
+    });
+  }
+  // 14 солевых / высоконикотиновых (saltnic, 20–60 mg) — для POD-систем
+  for (let i = 0; i < 14; i++) {
+    const brand    = pick(LIQUID_BRANDS);
+    const flavor   = pick(FLAVORS);
+    const volume   = pick(['10ml', '15ml', '30ml']);
+    const strength = pick(STRENGTHS_SALTNIC);
+    const base     = volume === '10ml' ? 480 : volume === '15ml' ? 620 : 950;
+    const nicBoost = (parseInt(strength) - 20) * 6;
+    const price    = round90(base + nicBoost + rand(0, 150));
+    out.push({
+      brand, name: `${flavor} Соль ${strength}`, category: 'liquid', type: 'Жидкость солевая',
+      flavor, strength, puffs: null, volume, battery: null,
+      price, old_price: rand(0, 2) === 0 ? round90(price * 1.18) : null,
+      rating: +(4.3 + Math.random() * 0.6).toFixed(1),
+      image: LIQ_IMAGES[i % LIQ_IMAGES.length], in_stock: 1,
+      description: `Солевая жидкость ${brand} «${flavor}» объёмом ${volume}. Высокая крепость ${strength}, подходит для POD-систем.`,
     });
   }
   return out;
